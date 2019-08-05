@@ -2,14 +2,17 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 let screenWidth = 1000;
-let screenHeight = 600;
+let screenHeight = 500;
+
+var isGameLive = true;
 
 var step = function() {
   update();
   draw();
-
-  window.requestAnimationFrame(step)
+  if(isGameLive) {
+    window.requestAnimationFrame(step)
     ;
+  }  
 }
 
 function drawHouse(xPosition=0,yPosition=0) {
@@ -69,8 +72,11 @@ class GameCharacter {
     this.speed = speed;
   }
   moveHorizontally() {
-    if(this.x > screenHeight -100) {
+  /*   if(this.x > screenHeight) {
       this.speed = -this.speed;
+    } */
+    if(this.x == screenWidth) {
+      this.speed = 0;
     }
     this.x += this.speed;
   }
@@ -109,37 +115,73 @@ var checkCollisions = function(rect1,rect2) {
 
 var enemies = [
   new Enemy(200,50,50,50,"red",2),
-  new Enemy(400,50+400,50,50,"red",2),
+  new Enemy(400,50+300,50,50,"red",2),
   new Enemy(600,50,50,50,"red",2)
 ];
 
-let player = new Player(50,300);
+let player = new Player(50,250);
+
+let goal = new GameCharacter(830,280,40,60,"violet",0);
 
 var update = function() {
   player.moveHorizontally();
 
+  if(checkCollisions(player,goal)) {
+    endGameLogic("¡Ganaste!");
+  }
+
   enemies.forEach(function(element){
     if(checkCollisions(player,element)) {
-      alert("Collision detected");
+      endGameLogic("Perdiste");
     }
     element.moveVertically();
   });
+
 }
 
 var draw = function() {
   ctx.clearRect(0,0,screenWidth,screenHeight);
-
+  ctx.drawImage(sprites.background,0,0);
+  
   drawHouse(700,95);
   //dibujar player en cudradito
-  ctx.fillStyle=player.color;
-  ctx.fillRect(player.x,player.y,player.width,player.height);
+  ctx.drawImage(sprites.player, player.x, player.y);
+  /* ctx.fillStyle=player.color;
+  ctx.fillRect(player.x,player.y,player.width,player.height); */
 
-  enemies.forEach(function(element){
-    ctx.fillStyle=element.color;
-    ctx.fillRect(element.x,element.y,element.width,element.height);
+  //goal
+  /* ctx.fillStyle=goal.color;
+  ctx.fillRect(goal.x,goal.y,goal.width,goal.height); */
+  ctx.drawImage(sprites.goal,goal.x,goal.y);
+
+  //enemigos
+  enemies.forEach(function(element,index){
+    /* ctx.fillStyle=element.color;
+    ctx.fillRect(element.x,element.y,element.width,element.height); */
+    ctx.drawImage(sprites.enemy,element.x,element.y);
   });
+}
+
+var endGameLogic = function(text) {
+  isGameLive = false;
+  alert(text);
+  location.reload();
+}
+
+var sprites = {};
+
+var loadSprites = function() {
+  sprites.player = new Image();
+    sprites.player.src = 'images/hero.png';
+    sprites.background = new Image();
+    sprites.background.src = 'images/floor.png';
+    sprites.enemy = new Image();
+    sprites.enemy.src = 'images/enemy.png';
+    sprites.goal = new Image();
+    sprites.goal.src = 'images/chest.png';
 }
 
 
 
+loadSprites();
 step();
